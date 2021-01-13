@@ -1,9 +1,14 @@
 type Todo {
     id: ID!
     body: String!
+    isDone: Boolean!
     createdAt: String!
 }
 
 type Query {
     todos: [Todo]!
+}
+
+type Mutation {
+    addTodo(body: String!): Todo!
 }
