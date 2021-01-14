@@ -1,4 +1,4 @@
-const todos = require('../../data.js')
+const todos = require('../../data.json')
 
 module.exports = {
   Mutation: {
