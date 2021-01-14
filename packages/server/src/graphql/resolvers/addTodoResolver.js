@@ -7,6 +7,7 @@ module.exports = {
         id: `${Date.now()}`,
         body,
         isDone: false,
+        isPinned: false,
         createdAt: `${Date.now()}`
       }
 

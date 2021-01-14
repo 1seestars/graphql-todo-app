@@ -1,8 +1,9 @@
 type Todo {
-    id: ID!
-    body: String!
-    isDone: Boolean!
-    createdAt: String!
+    id: ID
+    body: String
+    isDone: Boolean
+    isPinned: Boolean
+    createdAt: String
 }
 
 type Query {
@@ -10,5 +11,8 @@ type Query {
 }
 
 type Mutation {
-    addTodo(body: String!): Todo!
+    addTodo(body: String!): Todo
+    toggleIsDone(id: ID!): Todo
+    togglePin(id: ID!): Todo
+    removeTodo(id: ID!): [Todo]
 }

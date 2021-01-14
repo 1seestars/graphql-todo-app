@@ -29,9 +29,6 @@ const AddTodo = gql`
   mutation AddTodo($body: String!) {
     addTodo(body: $body) {
       id
-      body
-      isDone
-      createdAt
     }
   }
 `

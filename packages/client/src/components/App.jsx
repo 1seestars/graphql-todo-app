@@ -8,7 +8,7 @@ const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px;
+  padding: 30px 10px;
   box-sizing: border-box;
   background: rgb(240, 98, 146);
   background: linear-gradient(
@@ -28,7 +28,7 @@ const TodoWrapper = styled.div`
   align-self: center;
   border-radius: 7px;
   box-shadow: 0 0 30px 0 rgba(51, 51, 51, 0.7);
-  padding: 20px 0 0;
+  padding: 20px 0 20px;
 `
 
 const TodoMainBlock = styled.div`
@@ -50,6 +50,7 @@ export const GetTodos = gql`
       id
       body
       isDone
+      isPinned
       createdAt
     }
   }
