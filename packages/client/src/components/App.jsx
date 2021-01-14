@@ -3,6 +3,8 @@ import { gql, useQuery } from '@apollo/client'
 import Todo from './Todo'
 import CreateTodo from './CreateTodo'
 import styled from 'styled-components'
+import Loader from './Loader'
+import Error from './Error'
 
 const Container = styled.div`
   display: flex;
@@ -29,6 +31,34 @@ const TodoWrapper = styled.div`
   border-radius: 7px;
   box-shadow: 0 0 30px 0 rgba(51, 51, 51, 0.7);
   padding: 20px 0 20px;
+
+  -webkit-animation-name: zoomIn;
+  animation-name: zoomIn;
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+
+  @-webkit-keyframes zoomIn {
+    0% {
+      opacity: 0;
+      -webkit-transform: scale3d(0.8, 0.8, 0.8);
+      transform: scale3d(0.8, 0.8, 0.8);
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @keyframes zoomIn {
+    0% {
+      opacity: 0;
+      -webkit-transform: scale3d(0.8, 0.8, 0.8);
+      transform: scale3d(0.8, 0.8, 0.8);
+    }
+    50% {
+      opacity: 1;
+    }
+  }
 `
 
 const TodoMainBlock = styled.div`
@@ -59,25 +89,26 @@ export const GetTodos = gql`
 const App = () => {
   const { data, loading, error } = useQuery(GetTodos)
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>{error.message}</div>
-
-  return (
-    <Container>
-      <TodoWrapper>
-        <TodoMainBlock>
-          <CreateTodo />
-          <TodoList>
-            {data.todos.map((todo) => (
+  let componentInner = (
+    <TodoWrapper>
+      <TodoMainBlock>
+        <CreateTodo />
+        <TodoList>
+          {data &&
+            data.todos.map((todo) => (
               <li key={todo.id}>
                 <Todo todo={todo} />
               </li>
             ))}
-          </TodoList>
-        </TodoMainBlock>
-      </TodoWrapper>
-    </Container>
+        </TodoList>
+      </TodoMainBlock>
+    </TodoWrapper>
   )
+
+  if (error) componentInner = <Error message={error.message} />
+  if (loading) componentInner = <Loader />
+
+  return <Container>{componentInner}</Container>
 }
 
 export default App
