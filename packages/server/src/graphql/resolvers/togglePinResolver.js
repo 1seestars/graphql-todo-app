@@ -1,4 +1,5 @@
 const todos = require('../../data.json')
+const { makeChanges } = require('../../helpers/makeChanges')
 
 module.exports = {
   Mutation: {
@@ -8,6 +9,7 @@ module.exports = {
 
       todo.isPinned ? todos.push(todo) : todos.unshift(todo)
       todo.isPinned = !todo.isPinned
+      makeChanges(todos)
 
       return todo
     }

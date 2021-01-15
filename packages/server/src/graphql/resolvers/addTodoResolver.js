@@ -1,4 +1,5 @@
 const todos = require('../../data.json')
+const { makeChanges } = require('../../helpers/makeChanges')
 
 module.exports = {
   Mutation: {
@@ -12,6 +13,8 @@ module.exports = {
       }
 
       todos.push(newTodo)
+      makeChanges(todos)
+
       return newTodo
     }
   }
