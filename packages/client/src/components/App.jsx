@@ -75,32 +75,53 @@ const TodoList = styled.ul`
 `
 
 export const GetTodos = gql`
-  query GetTodos {
-    todos {
-      id
-      body
-      isDone
-      isPinned
-      createdAt
+  query GetTodos($offset: Int!, $limit: Int) {
+    todosInfo(offset: $offset, limit: $limit) {
+      todos {
+        id
+        body
+        isDone
+        isPinned
+        createdAt
+      }
+      quantity
     }
   }
 `
 
 const App = () => {
-  const { data, loading, error } = useQuery(GetTodos)
+  const { data, loading, error, fetchMore } = useQuery(GetTodos, {
+    variables: {
+      offset: 0
+    }
+  })
+
+  console.log(data)
+
+  const todos = (data && data.todosInfo.todos) || []
 
   let componentInner = (
     <TodoWrapper>
       <TodoMainBlock>
         <CreateTodo />
         <TodoList>
-          {data &&
-            data.todos.map((todo) => (
-              <li key={todo.id}>
-                <Todo todo={todo} />
-              </li>
-            ))}
+          {todos.map((todo) => (
+            <li key={todo.id}>
+              <Todo todo={todo} />
+            </li>
+          ))}
         </TodoList>
+        <button
+          onClick={() =>
+            fetchMore({
+              variables: {
+                offset: 10
+              }
+            })
+          }
+        >
+          Next
+        </button>
       </TodoMainBlock>
     </TodoWrapper>
   )

@@ -6,8 +6,13 @@ type Todo {
     createdAt: String
 }
 
+type TodosInfo {
+    todos: [Todo]
+    quantity: Int!
+}
+
 type Query {
-    todos: [Todo]!
+    todosInfo(offset: Int!, limit: Int): TodosInfo!
 }
 
 type Mutation {
