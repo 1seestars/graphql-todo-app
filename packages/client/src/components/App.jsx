@@ -108,14 +108,12 @@ export const GetTodos = gql`
 const App = () => {
   const [limit] = useState(10)
   const [count, setCount] = useState(0)
-  const [allTodos, setAllTodos] = useState([])
 
   const {
     data,
     loading,
     error,
     fetchMore,
-    refetch,
     variables: { offset }
   } = useQuery(GetTodos, {
     variables: {
@@ -125,14 +123,12 @@ const App = () => {
     notifyOnNetworkStatusChange: true
   })
 
-  console.log(data)
+  const todos = (data && data.todosInfo.data) || []
 
   useEffect(() => {
     const newCount = (data && data.todosInfo.count) || 0
-    const newTodos = (data && data.todosInfo.data) || []
 
     setCount(newCount)
-    setAllTodos((prev) => [...prev, ...newTodos])
   }, [data])
 
   if (error)
@@ -156,7 +152,7 @@ const App = () => {
         <TodoMainBlock>
           <CreateTodo />
           <TodoList>
-            {allTodos.map((todo) => (
+            {todos.map((todo) => (
               <li key={todo.id}>
                 <Todo todo={todo} />
               </li>
@@ -166,9 +162,11 @@ const App = () => {
             (offset + limit < count && (
               <LoadMoreButton
                 onClick={async () => {
-                  await refetch({
-                    offset: offset,
-                    limit
+                  await fetchMore({
+                    variables: {
+                      offset: (todos && todos.length) || 0,
+                      limit
+                    }
                   })
                 }}
               >
