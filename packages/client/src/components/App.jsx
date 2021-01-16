@@ -106,78 +106,7 @@ export const GetTodos = gql`
 `
 
 const App = () => {
-  const [allTodos, setAllTodos] = useState([
-    {
-      id: '1',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    },
-    {
-      id: '2',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    },
-    {
-      id: '3',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    },
-    {
-      id: '4',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    },
-    {
-      id: '5',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    },
-    {
-      id: '6',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    },
-    {
-      id: '7',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    },
-    {
-      id: '8',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    },
-    {
-      id: '9',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    },
-    {
-      id: '10',
-      body: 'vrverv',
-      isDone: false,
-      isPinned: false,
-      createdAt: '476535856766'
-    }
-  ])
+  const [allTodos, setAllTodos] = useState([])
   const [limit] = useState(10)
   const [count, setCount] = useState(0)
 
@@ -195,56 +124,18 @@ const App = () => {
     notifyOnNetworkStatusChange: true
   })
 
-  const receiveCachedArray = (start, end) => ({
-    firstPart: allTodos.slice(0, start),
-    lastPart: allTodos.slice(start + end, allTodos.length)
-  })
-
   const loadMoreHandle = async () => {
-    const res = await refetch({
+    await refetch({
       offset: offset + limit
     })
-
-    const newTodos = res.data.todosInfo.data
-    setAllTodos((prev) => [...prev, ...newTodos])
-  }
-
-  const handlePartialRefetch = async () => {
-    const res = await refetch({
-      offset
-    })
-
-    const refetchedArray = res.data.todosInfo.data
-    const cachedArrayConstructor = receiveCachedArray(offset, offset + limit)
-
-    setAllTodos([
-      ...cachedArrayConstructor.firstPart,
-      ...refetchedArray,
-      ...cachedArrayConstructor.lastPart
-    ])
-  }
-
-  const handlePinTodo = (id) => {
-    const todo = allTodos.find((item) => item.id === id)
-    const filteredArray = allTodos.filter((item) => item.id !== id)
-
-    if (todo.isPinned) {
-      setAllTodos(filteredArray)
-      handlePartialRefetch()
-      return
-    }
-
-    const newTodo = {
-      ...todo,
-      isPinned: !todo.isPinned
-    }
-
-    setAllTodos([newTodo, ...filteredArray])
   }
 
   useEffect(() => {
     const count = (data && data.todosInfo.count) || 0
+    const newTodos = (data && data.todosInfo.data) || []
+
     setCount(count)
+    setAllTodos((prev) => [...prev, ...newTodos])
   }, [data])
 
   if (error)
@@ -266,11 +157,11 @@ const App = () => {
     <Container>
       <TodoWrapper>
         <TodoMainBlock>
-          <CreateTodo handleAddTodo={handlePartialRefetch} />
+          <CreateTodo />
           <TodoList>
             {allTodos.map((todo) => (
               <li key={todo.id}>
-                <Todo todo={todo} handlePinTodo={handlePinTodo} />
+                <Todo todo={todo} />
               </li>
             ))}
           </TodoList>
