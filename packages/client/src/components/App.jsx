@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import Todo from './Todo'
 import CreateTodo from './CreateTodo'
@@ -74,62 +74,111 @@ const TodoList = styled.ul`
   padding: 0;
 `
 
+const LoadMoreButton = styled.button`
+  margin: 15px 0;
+  cursor: pointer;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  background: #ff48a3;
+  opacity: 0.6;
+  font-weight: 600;
+  color: white;
+  transition: 0.2s;
+  &:hover {
+    opacity: 0.8;
+  }
+`
+
 export const GetTodos = gql`
-  query GetTodos($offset: Int!, $limit: Int) {
+  query GetTodos($offset: Int!, $limit: Int!) {
     todosInfo(offset: $offset, limit: $limit) {
-      todos {
+      data {
         id
         body
         isDone
         isPinned
         createdAt
       }
-      quantity
+      count
     }
   }
 `
 
 const App = () => {
-  const { data, loading, error, fetchMore } = useQuery(GetTodos, {
+  const [limit] = useState(10)
+  const [count, setCount] = useState(0)
+  const [allTodos, setAllTodos] = useState([])
+
+  const {
+    data,
+    loading,
+    error,
+    fetchMore,
+    refetch,
+    variables: { offset }
+  } = useQuery(GetTodos, {
     variables: {
-      offset: 0
-    }
+      offset: 0,
+      limit
+    },
+    notifyOnNetworkStatusChange: true
   })
 
   console.log(data)
 
-  const todos = (data && data.todosInfo.todos) || []
+  useEffect(() => {
+    const newCount = (data && data.todosInfo.count) || 0
+    const newTodos = (data && data.todosInfo.data) || []
 
-  let componentInner = (
-    <TodoWrapper>
-      <TodoMainBlock>
-        <CreateTodo />
-        <TodoList>
-          {todos.map((todo) => (
-            <li key={todo.id}>
-              <Todo todo={todo} />
-            </li>
-          ))}
-        </TodoList>
-        <button
-          onClick={() =>
-            fetchMore({
-              variables: {
-                offset: 10
-              }
-            })
-          }
-        >
-          Next
-        </button>
-      </TodoMainBlock>
-    </TodoWrapper>
+    setCount(newCount)
+    setAllTodos((prev) => [...prev, ...newTodos])
+  }, [data])
+
+  if (error)
+    return (
+      <Container>
+        <Error message={error.message} />
+      </Container>
+    )
+
+  if (loading && !offset) {
+    return (
+      <Container>
+        <Loader />
+      </Container>
+    )
+  }
+
+  return (
+    <Container>
+      <TodoWrapper>
+        <TodoMainBlock>
+          <CreateTodo />
+          <TodoList>
+            {allTodos.map((todo) => (
+              <li key={todo.id}>
+                <Todo todo={todo} />
+              </li>
+            ))}
+          </TodoList>
+          {(loading && <Loader />) ||
+            (offset + limit < count && (
+              <LoadMoreButton
+                onClick={async () => {
+                  await refetch({
+                    offset: offset,
+                    limit
+                  })
+                }}
+              >
+                Load more
+              </LoadMoreButton>
+            ))}
+        </TodoMainBlock>
+      </TodoWrapper>
+    </Container>
   )
-
-  if (error) componentInner = <Error message={error.message} />
-  if (loading) componentInner = <Loader />
-
-  return <Container>{componentInner}</Container>
 }
 
 export default App
