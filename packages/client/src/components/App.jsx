@@ -109,13 +109,7 @@ const App = () => {
   const [limit] = useState(10)
   const [count, setCount] = useState(0)
 
-  const {
-    data,
-    loading,
-    error,
-    fetchMore,
-    variables: { offset }
-  } = useQuery(GetTodos, {
+  const { data, loading, error, fetchMore } = useQuery(GetTodos, {
     variables: {
       offset: 0,
       limit
@@ -138,7 +132,7 @@ const App = () => {
       </Container>
     )
 
-  if (loading && !offset) {
+  if (loading && !todos.length) {
     return (
       <Container>
         <Loader />
@@ -159,12 +153,12 @@ const App = () => {
             ))}
           </TodoList>
           {(loading && <Loader />) ||
-            (offset + limit < count && (
+            (todos.length < count && (
               <LoadMoreButton
                 onClick={async () => {
                   await fetchMore({
                     variables: {
-                      offset: (todos && todos.length) || 0,
+                      offset: todos.length,
                       limit
                     }
                   })

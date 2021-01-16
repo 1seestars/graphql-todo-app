@@ -5,10 +5,18 @@ export const cache = new InMemoryCache({
     Query: {
       fields: {
         todosInfo: {
-          merge(existing = {}, incoming) {
+          keyArgs: false,
+          merge(existing, incoming) {
+            let data = []
+            if (existing && existing.data) {
+              data = data.concat(existing.data)
+            }
+            if (incoming && incoming.data) {
+              data = data.concat(incoming.data)
+            }
             return {
-              ...existing,
-              ...incoming
+              ...incoming,
+              data
             }
           }
         }
