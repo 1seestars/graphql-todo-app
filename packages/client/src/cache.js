@@ -6,14 +6,15 @@ export const cache = new InMemoryCache({
       fields: {
         todosInfo: {
           keyArgs: false,
-          merge(existing, incoming) {
+          merge(existing, incoming, { args }) {
+            const exData = existing ? existing.data : []
             let data = []
-            if (existing && existing.data) {
-              data = data.concat(existing.data)
+            if (args.cache || incoming.data.length === 1) {
+              data = [...exData, ...incoming.data]
+            } else {
+              data = exData
             }
-            if (incoming && incoming.data) {
-              data = data.concat(incoming.data)
-            }
+
             return {
               ...incoming,
               data

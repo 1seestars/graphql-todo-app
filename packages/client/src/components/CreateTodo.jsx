@@ -29,11 +29,15 @@ const AddTodo = gql`
   mutation AddTodo($body: String!) {
     addTodo(body: $body) {
       id
+      body
+      isDone
+      isPinned
+      createdAt
     }
   }
 `
 
-const CreateTodo = () => {
+const CreateTodo = ({ offset, limit }) => {
   const [value, setValue] = useState('')
   const [addTodo] = useMutation(AddTodo)
 
@@ -43,7 +47,15 @@ const CreateTodo = () => {
       setValue('')
       await addTodo({
         variables: { body: value.trim() },
-        refetchQueries: [{ query: GetTodos }]
+        refetchQueries: [
+          {
+            query: GetTodos,
+            variables: {
+              offset: offset,
+              limit
+            }
+          }
+        ]
       })
     }
   }

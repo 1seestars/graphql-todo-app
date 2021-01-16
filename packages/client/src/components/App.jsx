@@ -91,8 +91,8 @@ const LoadMoreButton = styled.button`
 `
 
 export const GetTodos = gql`
-  query GetTodos($offset: Int!, $limit: Int!) {
-    todosInfo(offset: $offset, limit: $limit) {
+  query GetTodos($offset: Int!, $limit: Int!, $cache: Boolean) {
+    todosInfo(offset: $offset, limit: $limit, cache: $cache) {
       data {
         id
         body
@@ -112,7 +112,8 @@ const App = () => {
   const { data, loading, error, fetchMore } = useQuery(GetTodos, {
     variables: {
       offset: 0,
-      limit
+      limit,
+      cache: true
     },
     notifyOnNetworkStatusChange: true
   })
@@ -144,7 +145,7 @@ const App = () => {
     <Container>
       <TodoWrapper>
         <TodoMainBlock>
-          <CreateTodo />
+          <CreateTodo offset={todos.length} limit={limit} />
           <TodoList>
             {todos.map((todo) => (
               <li key={todo.id}>
@@ -159,7 +160,8 @@ const App = () => {
                   await fetchMore({
                     variables: {
                       offset: todos.length,
-                      limit
+                      limit,
+                      cache: true
                     }
                   })
                 }}

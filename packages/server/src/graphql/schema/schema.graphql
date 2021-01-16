@@ -12,7 +12,7 @@ type TodosInfo {
 }
 
 type Query {
-    todosInfo(offset: Int!, limit: Int!): TodosInfo!
+    todosInfo(offset: Int!, limit: Int!, cache: Boolean): TodosInfo!
 }
 
 type Mutation {
