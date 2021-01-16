@@ -7,12 +7,12 @@ type Todo {
 }
 
 type TodosInfo {
-    todos: [Todo]
-    quantity: Int!
+    data: [Todo]
+    count: Int!
 }
 
 type Query {
-    todosInfo(offset: Int!, limit: Int): TodosInfo!
+    todosInfo(offset: Int!, limit: Int!): TodosInfo!
 }
 
 type Mutation {

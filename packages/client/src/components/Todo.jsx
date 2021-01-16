@@ -107,10 +107,19 @@ const TogglePin = gql`
   }
 `
 
-const Todo = ({ todo }) => {
+const Todo = ({ todo, handlePinTodo }) => {
   const [toggleIsDone] = useMutation(ToggleIsDone)
   const [removeTodo] = useMutation(RemoveTodo)
   const [togglePin] = useMutation(TogglePin)
+
+  const buttonHandler = async (fn) => {
+    const options = {
+      variables: { id: todo.id },
+      refetchQueries: [{ query: GetTodos }]
+    }
+
+    fn(options)
+  }
 
   return (
     <TodoBlock pinned={todo.isPinned}>
@@ -131,12 +140,13 @@ const Todo = ({ todo }) => {
       <TodoOptions>
         <DropdownContent>
           <button
-            onClick={async () =>
+            onClick={async () => {
               await togglePin({
-                variables: { id: todo.id },
-                refetchQueries: [{ query: GetTodos }]
+                variables: { id: todo.id }
               })
-            }
+
+              handlePinTodo(todo.id)
+            }}
           >
             {todo.isPinned ? 'Unpin' : 'Pin on the top'}
           </button>

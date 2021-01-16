@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import Todo from './Todo'
 import CreateTodo from './CreateTodo'
@@ -74,62 +74,216 @@ const TodoList = styled.ul`
   padding: 0;
 `
 
+const LoadMoreButton = styled.button`
+  margin: 15px 0;
+  cursor: pointer;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  background: #ff48a3;
+  opacity: 0.5;
+  font-weight: 600;
+  color: white;
+  transition: 0.2s;
+  &:hover {
+    opacity: 0.8;
+  }
+`
+
 export const GetTodos = gql`
-  query GetTodos($offset: Int!, $limit: Int) {
+  query GetTodos($offset: Int!, $limit: Int!) {
     todosInfo(offset: $offset, limit: $limit) {
-      todos {
+      data {
         id
         body
         isDone
         isPinned
         createdAt
       }
-      quantity
+      count
     }
   }
 `
 
 const App = () => {
-  const { data, loading, error, fetchMore } = useQuery(GetTodos, {
-    variables: {
-      offset: 0
+  const [allTodos, setAllTodos] = useState([
+    {
+      id: '1',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
+    },
+    {
+      id: '2',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
+    },
+    {
+      id: '3',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
+    },
+    {
+      id: '4',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
+    },
+    {
+      id: '5',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
+    },
+    {
+      id: '6',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
+    },
+    {
+      id: '7',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
+    },
+    {
+      id: '8',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
+    },
+    {
+      id: '9',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
+    },
+    {
+      id: '10',
+      body: 'vrverv',
+      isDone: false,
+      isPinned: false,
+      createdAt: '476535856766'
     }
+  ])
+  const [limit] = useState(10)
+  const [count, setCount] = useState(0)
+
+  const {
+    data,
+    loading,
+    error,
+    refetch,
+    variables: { offset }
+  } = useQuery(GetTodos, {
+    variables: {
+      offset: 0,
+      limit
+    },
+    notifyOnNetworkStatusChange: true
   })
 
-  console.log(data)
+  const receiveCachedArray = (start, end) => ({
+    firstPart: allTodos.slice(0, start),
+    lastPart: allTodos.slice(start + end, allTodos.length)
+  })
 
-  const todos = (data && data.todosInfo.todos) || []
+  const loadMoreHandle = async () => {
+    const res = await refetch({
+      offset: offset + limit
+    })
 
-  let componentInner = (
-    <TodoWrapper>
-      <TodoMainBlock>
-        <CreateTodo />
-        <TodoList>
-          {todos.map((todo) => (
-            <li key={todo.id}>
-              <Todo todo={todo} />
-            </li>
-          ))}
-        </TodoList>
-        <button
-          onClick={() =>
-            fetchMore({
-              variables: {
-                offset: 10
-              }
-            })
-          }
-        >
-          Next
-        </button>
-      </TodoMainBlock>
-    </TodoWrapper>
+    const newTodos = res.data.todosInfo.data
+    setAllTodos((prev) => [...prev, ...newTodos])
+  }
+
+  const handlePartialRefetch = async () => {
+    const res = await refetch({
+      offset
+    })
+
+    const refetchedArray = res.data.todosInfo.data
+    const cachedArrayConstructor = receiveCachedArray(offset, offset + limit)
+
+    setAllTodos([
+      ...cachedArrayConstructor.firstPart,
+      ...refetchedArray,
+      ...cachedArrayConstructor.lastPart
+    ])
+  }
+
+  const handlePinTodo = (id) => {
+    const todo = allTodos.find((item) => item.id === id)
+    const filteredArray = allTodos.filter((item) => item.id !== id)
+
+    if (todo.isPinned) {
+      setAllTodos(filteredArray)
+      handlePartialRefetch()
+      return
+    }
+
+    const newTodo = {
+      ...todo,
+      isPinned: !todo.isPinned
+    }
+
+    setAllTodos([newTodo, ...filteredArray])
+  }
+
+  useEffect(() => {
+    const count = (data && data.todosInfo.count) || 0
+    setCount(count)
+  }, [data])
+
+  if (error)
+    return (
+      <Container>
+        <Error message={error.message} />
+      </Container>
+    )
+
+  if (loading && !offset) {
+    return (
+      <Container>
+        <Loader />
+      </Container>
+    )
+  }
+
+  return (
+    <Container>
+      <TodoWrapper>
+        <TodoMainBlock>
+          <CreateTodo handleAddTodo={handlePartialRefetch} />
+          <TodoList>
+            {allTodos.map((todo) => (
+              <li key={todo.id}>
+                <Todo todo={todo} handlePinTodo={handlePinTodo} />
+              </li>
+            ))}
+          </TodoList>
+          {(loading && <Loader />) ||
+            (offset + limit < count && (
+              <LoadMoreButton onClick={loadMoreHandle}>
+                Load more
+              </LoadMoreButton>
+            ))}
+        </TodoMainBlock>
+      </TodoWrapper>
+    </Container>
   )
-
-  if (error) componentInner = <Error message={error.message} />
-  if (loading) componentInner = <Loader />
-
-  return <Container>{componentInner}</Container>
 }
 
 export default App

@@ -33,7 +33,7 @@ const AddTodo = gql`
   }
 `
 
-const CreateTodo = () => {
+const CreateTodo = ({ handleAddTodo }) => {
   const [value, setValue] = useState('')
   const [addTodo] = useMutation(AddTodo)
 
@@ -42,9 +42,10 @@ const CreateTodo = () => {
     if (value.trim()) {
       setValue('')
       await addTodo({
-        variables: { body: value.trim() },
-        refetchQueries: [{ query: GetTodos }]
+        variables: { body: value.trim() }
       })
+
+      handleAddTodo()
     }
   }
 

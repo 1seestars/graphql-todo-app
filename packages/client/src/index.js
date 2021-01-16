@@ -7,7 +7,7 @@ import { cache } from './cache'
 
 const client = new ApolloClient({
   cache,
-  uri: 'http://localhost:4000/graphql'
+  uri: 'http://192.168.0.102:4000/graphql'
 })
 
 ReactDOM.render(
