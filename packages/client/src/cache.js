@@ -6,7 +6,7 @@ export const cache = new InMemoryCache({
       fields: {
         todosInfo: {
           keyArgs: false,
-          merge(existing, incoming, { args }) {
+          merge(existing, incoming) {
             let data = []
             if (existing && existing.data) {
               data = data.concat(existing.data)
@@ -23,15 +23,5 @@ export const cache = new InMemoryCache({
         }
       }
     }
-    // Mutation: {
-    //   fields: {
-    //     removeTodo: {
-    //       keyArgs: false,
-    //       merge(existing, incoming) {
-    //         return incoming
-    //       }
-    //     }
-    //   }
-    // }
   }
 })

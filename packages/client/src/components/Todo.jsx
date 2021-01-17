@@ -120,26 +120,49 @@ const Todo = ({ todo }) => {
     await removeTodo({
       variables: { id: todo.id },
       update(cache, { data: { removeTodo } }) {
-        const removedTodoRef = cache.writeFragment({
-          data: removeTodo,
-          fragment: gql`
-            fragment RemovedTodo on Todo {
-              id
-            }
-          `
-        })
-
         cache.modify({
           fields: {
-            todosInfo(existing) {
+            todosInfo(existing, { readField }) {
               const newData = existing.data.filter(
-                (t) => t.__ref !== removedTodoRef.__ref
+                (t) => readField('id', t) !== removeTodo.id
               )
               return {
                 ...existing,
                 data: newData,
                 count: existing.count - 1
               }
+            }
+          }
+        })
+      }
+    })
+
+  const handleUpdateTodo = async () =>
+    await toggleIsDone({
+      variables: { id: todo.id },
+      update(cache, { data: { toggleIsDone } }) {
+        const updatedTodo = gql`
+          fragment UpdatedTodo on Todo {
+            isDone
+          }
+        `
+
+        const updatedTodoRef = cache.writeFragment({
+          id: cache.identify(toggleIsDone),
+          fragment: updatedTodo
+        })
+
+        cache.modify({
+          fields: {
+            todosInfo(existing, { readField }) {
+              cache.writeFragment({
+                id: cache.identify(toggleIsDone),
+                fragment: updatedTodo,
+                data: {
+                  isDone: !readField('isDone', updatedTodoRef)
+                }
+              })
+              return existing
             }
           }
         })
@@ -153,12 +176,7 @@ const Todo = ({ todo }) => {
         <Checkmark
           type={'checkbox'}
           checked={todo.isDone}
-          onChange={async () =>
-            await toggleIsDone({
-              variables: { id: todo.id },
-              refetchQueries: [{ query: GetTodos }]
-            })
-          }
+          onChange={handleUpdateTodo}
         />
         {todo.body}
       </TodoBodyBlock>

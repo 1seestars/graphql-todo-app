@@ -92,8 +92,8 @@ const TodoList = styled.ul`
 // `
 
 export const GetTodos = gql`
-  query GetTodos($offset: Int!, $limit: Int!, $cache: Boolean) {
-    todosInfo(offset: $offset, limit: $limit, cache: $cache) {
+  query GetTodos($offset: Int!, $limit: Int!) {
+    todosInfo(offset: $offset, limit: $limit) {
       data {
         id
         body

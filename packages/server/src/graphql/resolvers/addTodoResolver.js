@@ -1,11 +1,12 @@
 const todos = require('../../data.json')
 const { makeChanges } = require('../../helpers/makeChanges')
+const { v4: uuid } = require('uuid')
 
 module.exports = {
   Mutation: {
     addTodo: (_, { body }) => {
       const newTodo = {
-        id: `${Date.now()}`,
+        id: uuid(),
         body,
         isDone: false,
         isPinned: false,
