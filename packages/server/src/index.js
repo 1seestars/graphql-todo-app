@@ -1,22 +1,13 @@
 const { ApolloServer } = require('apollo-server')
 const { importSchema } = require('graphql-import')
-const todoResolver = require('./graphql/resolvers/todosResolver.js')
-const addTodoResolver = require('./graphql/resolvers/addTodoResolver.js')
-const toggleIsDoneResolver = require('./graphql/resolvers/toggleIsDoneResolver.js')
-const removeTodoResolver = require('./graphql/resolvers/removeTodoResolver.js')
-const togglePinResolver = require('./graphql/resolvers/togglePinResolver.js')
+const fetchTodosResolver = require('./graphql/resolvers/fetchTodosResolver.js')
+const todoActionResolver = require('./graphql/resolvers/todoActionResolver')
 
 const typeDefs = importSchema(`${__dirname}/graphql/schema/schema.graphql`)
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers: [
-    todoResolver,
-    addTodoResolver,
-    toggleIsDoneResolver,
-    removeTodoResolver,
-    togglePinResolver
-  ]
+  resolvers: [fetchTodosResolver, todoActionResolver]
 })
 
 server.listen().then(({ url }) => {
