@@ -5,10 +5,10 @@ module.exports = {
   Mutation: {
     removeTodo: (_, { id }) => {
       const index = todos.findIndex((todo) => todo.id === id)
-      todos.splice(index, 1)
+      const removedTodo = todos.splice(index, 1)[0]
       makeChanges(todos)
 
-      return todos
+      return removedTodo
     }
   }
 }

@@ -51,7 +51,7 @@ const CreateTodo = ({ offset, limit }) => {
           {
             query: GetTodos,
             variables: {
-              offset: offset,
+              offset,
               limit
             }
           }

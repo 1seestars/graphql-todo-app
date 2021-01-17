@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Fragment } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import Todo from './Todo'
 import CreateTodo from './CreateTodo'
 import styled from 'styled-components'
 import Loader from './Loader'
 import Error from './Error'
+import { Waypoint } from 'react-waypoint'
 
 const Container = styled.div`
   display: flex;
@@ -74,21 +75,21 @@ const TodoList = styled.ul`
   padding: 0;
 `
 
-const LoadMoreButton = styled.button`
-  margin: 15px 0;
-  cursor: pointer;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  background: #ff48a3;
-  opacity: 0.6;
-  font-weight: 600;
-  color: white;
-  transition: 0.2s;
-  &:hover {
-    opacity: 0.8;
-  }
-`
+// const LoadMoreButton = styled.button`
+//   margin: 15px 0;
+//   cursor: pointer;
+//   border: none;
+//   padding: 10px 15px;
+//   border-radius: 5px;
+//   background: #ff48a3;
+//   opacity: 0.6;
+//   font-weight: 600;
+//   color: white;
+//   transition: 0.2s;
+//   &:hover {
+//     opacity: 0.8;
+//   }
+// `
 
 export const GetTodos = gql`
   query GetTodos($offset: Int!, $limit: Int!, $cache: Boolean) {
@@ -147,28 +148,28 @@ const App = () => {
         <TodoMainBlock>
           <CreateTodo offset={todos.length} limit={limit} />
           <TodoList>
-            {todos.map((todo) => (
-              <li key={todo.id}>
-                <Todo todo={todo} />
-              </li>
+            {todos.map((todo, index) => (
+              <Fragment key={todo.id}>
+                <li>
+                  <Todo todo={todo} />
+                </li>
+                {index === todos.length - 1 && todos.length < count && (
+                  <Waypoint
+                    onEnter={async () => {
+                      await fetchMore({
+                        variables: {
+                          offset: todos.length,
+                          limit,
+                          cache: true
+                        }
+                      })
+                    }}
+                  />
+                )}
+              </Fragment>
             ))}
           </TodoList>
-          {(loading && <Loader />) ||
-            (todos.length < count && (
-              <LoadMoreButton
-                onClick={async () => {
-                  await fetchMore({
-                    variables: {
-                      offset: todos.length,
-                      limit,
-                      cache: true
-                    }
-                  })
-                }}
-              >
-                Load more
-              </LoadMoreButton>
-            ))}
+          {loading && <Loader />}
         </TodoMainBlock>
       </TodoWrapper>
     </Container>

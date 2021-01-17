@@ -103,6 +103,10 @@ const TogglePin = gql`
   mutation TogglePin($id: ID!) {
     togglePin(id: $id) {
       id
+      body
+      isDone
+      isPinned
+      createdAt
     }
   }
 `
@@ -111,6 +115,36 @@ const Todo = ({ todo }) => {
   const [toggleIsDone] = useMutation(ToggleIsDone)
   const [removeTodo] = useMutation(RemoveTodo)
   const [togglePin] = useMutation(TogglePin)
+
+  const handleRemoveTodo = async () =>
+    await removeTodo({
+      variables: { id: todo.id },
+      update(cache, { data: { removeTodo } }) {
+        const removedTodoRef = cache.writeFragment({
+          data: removeTodo,
+          fragment: gql`
+            fragment RemovedTodo on Todo {
+              id
+            }
+          `
+        })
+
+        cache.modify({
+          fields: {
+            todosInfo(existing) {
+              const newData = existing.data.filter(
+                (t) => t.__ref !== removedTodoRef.__ref
+              )
+              return {
+                ...existing,
+                data: newData,
+                count: existing.count - 1
+              }
+            }
+          }
+        })
+      }
+    })
 
   return (
     <TodoBlock pinned={todo.isPinned}>
@@ -140,16 +174,7 @@ const Todo = ({ todo }) => {
           >
             {todo.isPinned ? 'Unpin' : 'Pin on the top'}
           </button>
-          <button
-            onClick={async () =>
-              await removeTodo({
-                variables: { id: todo.id },
-                refetchQueries: [{ query: GetTodos }]
-              })
-            }
-          >
-            Delete
-          </button>
+          <button onClick={handleRemoveTodo}>Delete</button>
         </DropdownContent>
       </TodoOptions>
     </TodoBlock>
