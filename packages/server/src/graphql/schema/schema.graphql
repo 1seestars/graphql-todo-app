@@ -1,13 +1,13 @@
 type Todo {
-    id: ID
-    body: String
-    isDone: Boolean
-    isPinned: Boolean
-    createdAt: String
+    id: ID!
+    body: String!
+    isDone: Boolean!
+    isPinned: Boolean!
+    createdAt: String!
 }
 
 type TodosInfo {
-    data: [Todo]
+    data: [Todo]!
     count: Int!
 }
 
@@ -16,8 +16,8 @@ type Query {
 }
 
 type Mutation {
-    addTodo(body: String!): Todo
-    toggleIsDone(id: ID!): Todo
-    togglePin(id: ID!): Todo
-    removeTodo(id: ID!): [Todo]
+    addTodo(body: String!): Todo!
+    toggleIsDone(id: ID!): Todo!
+    togglePin(id: ID!): Todo!
+    removeTodo(id: ID!): Todo!
 }

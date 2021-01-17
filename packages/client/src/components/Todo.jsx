@@ -1,7 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
 import { gql, useMutation } from '@apollo/client'
-import { GetTodos } from './App'
 import dots from '../assets/dots.jpg'
 import pink_pin from '../assets/pink_pin.png'
 
@@ -103,23 +102,110 @@ const TogglePin = gql`
   mutation TogglePin($id: ID!) {
     togglePin(id: $id) {
       id
+      body
+      isDone
+      isPinned
+      createdAt
     }
   }
 `
 
-const Todo = ({ todo, handlePinTodo }) => {
+const Todo = ({ todo }) => {
   const [toggleIsDone] = useMutation(ToggleIsDone)
   const [removeTodo] = useMutation(RemoveTodo)
   const [togglePin] = useMutation(TogglePin)
 
-  const buttonHandler = async (fn) => {
-    const options = {
+  const handleRemoveTodo = async () =>
+    await removeTodo({
       variables: { id: todo.id },
-      refetchQueries: [{ query: GetTodos }]
-    }
+      update(cache, { data: { removeTodo } }) {
+        cache.modify({
+          fields: {
+            todosInfo(existing, { readField }) {
+              const newData = existing.data.filter(
+                (t) => readField('id', t) !== removeTodo.id
+              )
+              return {
+                ...existing,
+                data: newData,
+                count: existing.count - 1
+              }
+            }
+          }
+        })
+      }
+    })
 
-    fn(options)
-  }
+  const handlePinTodo = async () =>
+    await togglePin({
+      variables: { id: todo.id },
+      update(cache, { data: { togglePin } }) {
+        const pinnedTodo = gql`
+          fragment PinnedTodo on Todo {
+            isPinned
+          }
+        `
+
+        const pinnedTodoRef = cache.writeFragment({
+          id: cache.identify(togglePin),
+          fragment: pinnedTodo
+        })
+
+        cache.modify({
+          fields: {
+            todosInfo(existing, { readField }) {
+              const arrWithPinnedTodo = []
+              const filtered = []
+
+              existing.data.forEach((t) =>
+                readField('id', t) === togglePin.id
+                  ? arrWithPinnedTodo.push(t)
+                  : filtered.push(t)
+              )
+
+              return {
+                ...existing,
+                data: readField('isPinned', pinnedTodoRef)
+                  ? [...arrWithPinnedTodo, ...filtered]
+                  : [...filtered, ...arrWithPinnedTodo]
+              }
+            }
+          }
+        })
+      }
+    })
+
+  const handleUpdateTodo = async () =>
+    await toggleIsDone({
+      variables: { id: todo.id },
+      update(cache, { data: { toggleIsDone } }) {
+        const updatedTodo = gql`
+          fragment UpdatedTodo on Todo {
+            isDone
+          }
+        `
+
+        const updatedTodoRef = cache.writeFragment({
+          id: cache.identify(toggleIsDone),
+          fragment: updatedTodo
+        })
+
+        cache.modify({
+          fields: {
+            todosInfo(existing, { readField }) {
+              cache.writeFragment({
+                id: cache.identify(toggleIsDone),
+                fragment: updatedTodo,
+                data: {
+                  isDone: !readField('isDone', updatedTodoRef)
+                }
+              })
+              return existing
+            }
+          }
+        })
+      }
+    })
 
   return (
     <TodoBlock pinned={todo.isPinned}>
@@ -128,38 +214,16 @@ const Todo = ({ todo, handlePinTodo }) => {
         <Checkmark
           type={'checkbox'}
           checked={todo.isDone}
-          onChange={async () =>
-            await toggleIsDone({
-              variables: { id: todo.id },
-              refetchQueries: [{ query: GetTodos }]
-            })
-          }
+          onChange={handleUpdateTodo}
         />
         {todo.body}
       </TodoBodyBlock>
       <TodoOptions>
         <DropdownContent>
-          <button
-            onClick={async () => {
-              await togglePin({
-                variables: { id: todo.id }
-              })
-
-              handlePinTodo(todo.id)
-            }}
-          >
+          <button onClick={handlePinTodo}>
             {todo.isPinned ? 'Unpin' : 'Pin on the top'}
           </button>
-          <button
-            onClick={async () =>
-              await removeTodo({
-                variables: { id: todo.id },
-                refetchQueries: [{ query: GetTodos }]
-              })
-            }
-          >
-            Delete
-          </button>
+          <button onClick={handleRemoveTodo}>Delete</button>
         </DropdownContent>
       </TodoOptions>
     </TodoBlock>

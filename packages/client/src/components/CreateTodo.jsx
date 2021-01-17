@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import styled from 'styled-components'
 import { GetTodos } from './App'
@@ -29,29 +29,44 @@ const AddTodo = gql`
   mutation AddTodo($body: String!) {
     addTodo(body: $body) {
       id
+      body
+      isDone
+      isPinned
+      createdAt
     }
   }
 `
 
-const CreateTodo = ({ handleAddTodo }) => {
+const CreateTodo = ({ offset, limit }) => {
   const [value, setValue] = useState('')
   const [addTodo] = useMutation(AddTodo)
+
+  const createInputRef = useRef()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (value.trim()) {
-      setValue('')
       await addTodo({
-        variables: { body: value.trim() }
+        variables: { body: value.trim() },
+        refetchQueries: [
+          {
+            query: GetTodos,
+            variables: {
+              offset,
+              limit
+            }
+          }
+        ]
       })
-
-      handleAddTodo()
+      setValue('')
+      createInputRef.current.blur()
     }
   }
 
   return (
     <Form onSubmit={handleSubmit}>
       <Input
+        ref={createInputRef}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={'Add a task...'}

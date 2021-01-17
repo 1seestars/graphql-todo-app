@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Fragment } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import Todo from './Todo'
 import CreateTodo from './CreateTodo'
 import styled from 'styled-components'
 import Loader from './Loader'
 import Error from './Error'
+import { Waypoint } from 'react-waypoint'
 
 const Container = styled.div`
   display: flex;
@@ -74,21 +75,21 @@ const TodoList = styled.ul`
   padding: 0;
 `
 
-const LoadMoreButton = styled.button`
-  margin: 15px 0;
-  cursor: pointer;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  background: #ff48a3;
-  opacity: 0.5;
-  font-weight: 600;
-  color: white;
-  transition: 0.2s;
-  &:hover {
-    opacity: 0.8;
-  }
-`
+// const LoadMoreButton = styled.button`
+//   margin: 15px 0;
+//   cursor: pointer;
+//   border: none;
+//   padding: 10px 15px;
+//   border-radius: 5px;
+//   background: #ff48a3;
+//   opacity: 0.6;
+//   font-weight: 600;
+//   color: white;
+//   transition: 0.2s;
+//   &:hover {
+//     opacity: 0.8;
+//   }
+// `
 
 export const GetTodos = gql`
   query GetTodos($offset: Int!, $limit: Int!) {
@@ -106,36 +107,24 @@ export const GetTodos = gql`
 `
 
 const App = () => {
-  const [allTodos, setAllTodos] = useState([])
   const [limit] = useState(10)
   const [count, setCount] = useState(0)
 
-  const {
-    data,
-    loading,
-    error,
-    refetch,
-    variables: { offset }
-  } = useQuery(GetTodos, {
+  const { data, loading, error, fetchMore } = useQuery(GetTodos, {
     variables: {
       offset: 0,
-      limit
+      limit,
+      cache: true
     },
     notifyOnNetworkStatusChange: true
   })
 
-  const loadMoreHandle = async () => {
-    await refetch({
-      offset: offset + limit
-    })
-  }
+  const todos = (data && data.todosInfo.data) || []
 
   useEffect(() => {
-    const count = (data && data.todosInfo.count) || 0
-    const newTodos = (data && data.todosInfo.data) || []
+    const newCount = (data && data.todosInfo.count) || 0
 
-    setCount(count)
-    setAllTodos((prev) => [...prev, ...newTodos])
+    setCount(newCount)
   }, [data])
 
   if (error)
@@ -145,7 +134,7 @@ const App = () => {
       </Container>
     )
 
-  if (loading && !offset) {
+  if (loading && !todos.length) {
     return (
       <Container>
         <Loader />
@@ -157,20 +146,30 @@ const App = () => {
     <Container>
       <TodoWrapper>
         <TodoMainBlock>
-          <CreateTodo />
+          <CreateTodo offset={todos.length} limit={limit} />
           <TodoList>
-            {allTodos.map((todo) => (
-              <li key={todo.id}>
-                <Todo todo={todo} />
-              </li>
+            {todos.map((todo, index) => (
+              <Fragment key={todo.id}>
+                <li>
+                  <Todo todo={todo} />
+                </li>
+                {index === todos.length - 1 && todos.length < count && (
+                  <Waypoint
+                    onEnter={async () => {
+                      await fetchMore({
+                        variables: {
+                          offset: todos.length,
+                          limit,
+                          cache: true
+                        }
+                      })
+                    }}
+                  />
+                )}
+              </Fragment>
             ))}
           </TodoList>
-          {(loading && <Loader />) ||
-            (offset + limit < count && (
-              <LoadMoreButton onClick={loadMoreHandle}>
-                Load more
-              </LoadMoreButton>
-            ))}
+          {loading && <Loader />}
         </TodoMainBlock>
       </TodoWrapper>
     </Container>
