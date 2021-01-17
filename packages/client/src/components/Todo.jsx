@@ -1,7 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
 import { gql, useMutation } from '@apollo/client'
-import { GetTodos } from './App'
 import dots from '../assets/dots.jpg'
 import pink_pin from '../assets/pink_pin.png'
 
@@ -137,6 +136,45 @@ const Todo = ({ todo }) => {
       }
     })
 
+  const handlePinTodo = async () =>
+    await togglePin({
+      variables: { id: todo.id },
+      update(cache, { data: { togglePin } }) {
+        const pinnedTodo = gql`
+          fragment PinnedTodo on Todo {
+            isPinned
+          }
+        `
+
+        const pinnedTodoRef = cache.writeFragment({
+          id: cache.identify(togglePin),
+          fragment: pinnedTodo
+        })
+
+        cache.modify({
+          fields: {
+            todosInfo(existing, { readField }) {
+              const arrWithPinnedTodo = []
+              const filtered = []
+
+              existing.data.forEach((t) =>
+                readField('id', t) === togglePin.id
+                  ? arrWithPinnedTodo.push(t)
+                  : filtered.push(t)
+              )
+
+              return {
+                ...existing,
+                data: readField('isPinned', pinnedTodoRef)
+                  ? [...arrWithPinnedTodo, ...filtered]
+                  : [...filtered, ...arrWithPinnedTodo]
+              }
+            }
+          }
+        })
+      }
+    })
+
   const handleUpdateTodo = async () =>
     await toggleIsDone({
       variables: { id: todo.id },
@@ -182,14 +220,7 @@ const Todo = ({ todo }) => {
       </TodoBodyBlock>
       <TodoOptions>
         <DropdownContent>
-          <button
-            onClick={async () =>
-              await togglePin({
-                variables: { id: todo.id },
-                refetchQueries: [{ query: GetTodos }]
-              })
-            }
-          >
+          <button onClick={handlePinTodo}>
             {todo.isPinned ? 'Unpin' : 'Pin on the top'}
           </button>
           <button onClick={handleRemoveTodo}>Delete</button>
