@@ -39,7 +39,7 @@ const DropdownContent = styled.div`
   position: absolute;
   right: 0;
   min-width: 100px;
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
   z-index: 1;
   background: #576168;
 
@@ -53,6 +53,7 @@ const DropdownContent = styled.div`
     cursor: pointer;
     display: block;
     font-weight: 600;
+    transition: 0.15s;
   }
 
   & button:hover {
@@ -69,6 +70,7 @@ const TodoOptions = styled.div`
   background-position: center center;
   background-repeat: no-repeat;
   background-size: 100%;
+
   &:hover ${DropdownContent} {
     display: block;
   }
@@ -136,7 +138,7 @@ const Todo = ({ todo }) => {
       }
     })
 
-  const handlePinTodo = async () =>
+  const handlePinTodo = async (e) =>
     await togglePin({
       variables: { id: todo.id },
       update(cache, { data: { togglePin } }) {
@@ -146,7 +148,7 @@ const Todo = ({ todo }) => {
           }
         `
 
-        const pinnedTodoRef = cache.writeFragment({
+        const pinnedTodoRef = cache.readFragment({
           id: cache.identify(togglePin),
           fragment: pinnedTodo
         })
@@ -185,7 +187,7 @@ const Todo = ({ todo }) => {
           }
         `
 
-        const updatedTodoRef = cache.writeFragment({
+        const updatedTodoRef = cache.readFragment({
           id: cache.identify(toggleIsDone),
           fragment: updatedTodo
         })
@@ -218,7 +220,7 @@ const Todo = ({ todo }) => {
         />
         {todo.body}
       </TodoBodyBlock>
-      <TodoOptions>
+      <TodoOptions onHover={() => alert('focus')}>
         <DropdownContent>
           <button onClick={handlePinTodo}>
             {todo.isPinned ? 'Unpin' : 'Pin on the top'}

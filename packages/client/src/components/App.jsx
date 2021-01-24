@@ -73,23 +73,8 @@ const TodoList = styled.ul`
   list-style: none;
   text-align: left;
   padding: 0;
+  opacity: ${({ opacity }) => opacity};
 `
-
-// const LoadMoreButton = styled.button`
-//   margin: 15px 0;
-//   cursor: pointer;
-//   border: none;
-//   padding: 10px 15px;
-//   border-radius: 5px;
-//   background: #ff48a3;
-//   opacity: 0.6;
-//   font-weight: 600;
-//   color: white;
-//   transition: 0.2s;
-//   &:hover {
-//     opacity: 0.8;
-//   }
-// `
 
 export const GetTodos = gql`
   query GetTodos($offset: Int!, $limit: Int!) {
@@ -113,8 +98,7 @@ const App = () => {
   const { data, loading, error, fetchMore } = useQuery(GetTodos, {
     variables: {
       offset: 0,
-      limit,
-      cache: true
+      limit
     },
     notifyOnNetworkStatusChange: true
   })
@@ -147,7 +131,7 @@ const App = () => {
       <TodoWrapper>
         <TodoMainBlock>
           <CreateTodo offset={todos.length} limit={limit} />
-          <TodoList>
+          <TodoList opacity={loading ? '0.5' : '1'}>
             {todos.map((todo, index) => (
               <Fragment key={todo.id}>
                 <li>

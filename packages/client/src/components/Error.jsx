@@ -14,8 +14,6 @@ const ErrorBlock = styled.div`
   animation-name: bounceIn;
   -webkit-animation-duration: .75s;
   animation-duration: .75s;
-  -webkit-animation-duration: 1s;
-  animation-duration: 1s;
   -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
   
